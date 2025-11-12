@@ -386,11 +386,15 @@ class RedisService {
             timestamp: parsed.t,
             spreadPercent: parsed.sp,
             totalDepth: parsed.td,
+            bidDepth: parsed.bd,          // 买盘深度
+            askDepth: parsed.ad,          // 卖盘深度
             slippage_100k: parsed.s1,
             slippage_1m: parsed.s2,
             liquidityScore: parsed.ls,
             imbalance: parsed.im,
-            midPrice: parsed.mp
+            midPrice: parsed.mp,
+            bestBid: parsed.bb,           // 最优买价
+            bestAsk: parsed.ba            // 最优卖价
           };
         })
       };

@@ -36,6 +36,7 @@ const MAX_POINTS = {
   '1h': 200,
   '6h': 360,
   '24h': 500,
+  'all': 2000,
 } as const;
 
 export const DepthChart: React.FC<Props> = ({ symbol, type = 'spot' }) => {
@@ -48,7 +49,7 @@ export const DepthChart: React.FC<Props> = ({ symbol, type = 'spot' }) => {
   const [refreshKey, setRefreshKey] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [timeRange, setTimeRange] = useState<'15m' | '1h' | '6h' | '24h'>('1h');
+  const [timeRange, setTimeRange] = useState<'15m' | '1h' | '6h' | '24h' | 'all'>('1h');
   const [chartType, setChartType] = useState<'depth' | 'spread' | 'imbalance'>('depth');
 
   // Memoized formatters (never recreate) - absolute values for mirrored layout
@@ -423,6 +424,12 @@ export const DepthChart: React.FC<Props> = ({ symbol, type = 'spot' }) => {
               onClick={() => setTimeRange('24h')}
             >
               24小时
+            </button>
+            <button 
+              className={timeRange === 'all' ? 'active' : ''}
+              onClick={() => setTimeRange('all')}
+            >
+              全部
             </button>
           </div>
         </div>
