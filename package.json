@@ -1,0 +1,23 @@
+{
+  "name": "binance-liquidity-monitor",
+  "version": "1.0.0",
+  "description": "Binance liquidity monitoring system with rate limiting protection",
+  "scripts": {
+    "install:all": "cd backend && npm install && cd ../frontend && npm install",
+    "start": "./start.sh",
+    "backend": "cd backend && npm start",
+    "frontend": "cd frontend && npm run dev",
+    "backend:dev": "cd backend && npm run dev",
+    "build": "cd frontend && npm run build"
+  },
+  "keywords": [
+    "binance",
+    "liquidity",
+    "monitoring",
+    "cryptocurrency",
+    "trading"
+  ],
+  "author": "",
+  "license": "MIT"
+}
+
