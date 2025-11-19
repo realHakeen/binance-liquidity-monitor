@@ -29,6 +29,7 @@ router.get('/liquidity', async (req, res) => {
     
     if (subscriptions.length === 0) {
       // 如果没有订阅，提示用户等待自动订阅
+      console.log('没有订阅，提示用户等待自动订阅');
       return res.json({
         success: true,
         data: [],

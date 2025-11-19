@@ -77,20 +77,38 @@ export const DepthChart: React.FC<Props> = ({ symbol, type = 'spot' }) => {
     }
   }, [chartType]);
 
+  const formatTooltipLabel = useCallback((label: string, payload: any[]) => {
+    if (payload?.[0]?.payload?.timestamp) {
+      return new Date(payload[0].payload.timestamp).toLocaleString('en-US', {
+        month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false
+      });
+    }
+    return label;
+  }, []);
+
   // Transform raw data point with negative ask depth for mirrored layout
   const transformDataPoint = useCallback((item: any): DepthHistoryPoint => {
     const date = new Date(item.timestamp);
     const spread = item.bestAsk && item.bestBid ? 
       ((item.bestAsk - item.bestBid) / item.bestBid * 100) : 0;
-    const imbalance = item.bidDepth && item.askDepth ?
-      ((item.bidDepth - item.askDepth) / (item.bidDepth + item.askDepth)) : 0;
+    
+    // 优先使用1%深度数据 (depth_1pct_bid/ask)，如果没有则回退到0.1%深度 (bidDepth/askDepth)
+    const bidDepth = item.depth_1pct_bid || item.bidDepth || 0;
+    const askDepth = item.depth_1pct_ask || item.askDepth || 0;
+    
+    const imbalance = bidDepth && askDepth ?
+      ((bidDepth - askDepth) / (bidDepth + askDepth)) : 0;
 
     return {
       timestamp: item.timestamp,
-      time: date.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }),
-      bidDepth: item.bidDepth || 0,
-      askDepth: -(item.askDepth || 0), // Negative for mirrored layout
-      totalDepth: (item.bidDepth || 0) + (item.askDepth || 0),
+      time: date.toLocaleTimeString('en-US', { 
+        hour: '2-digit', 
+        minute: '2-digit',
+        hour12: false
+      }),
+      bidDepth: bidDepth,
+      askDepth: -askDepth, // Negative for mirrored layout
+      totalDepth: bidDepth + askDepth,
       bestBid: item.bestBid || 0,
       bestAsk: item.bestAsk || 0,
       spread: spread,
@@ -223,6 +241,7 @@ export const DepthChart: React.FC<Props> = ({ symbol, type = 'spot' }) => {
         />
         <Tooltip 
           formatter={formatTooltipValue}
+          labelFormatter={formatTooltipLabel}
           contentStyle={{ 
             backgroundColor: 'rgba(31, 41, 55, 0.95)',
             border: '1px solid #4b5563',
@@ -262,7 +281,7 @@ export const DepthChart: React.FC<Props> = ({ symbol, type = 'spot' }) => {
         />
       </AreaChart>
     </ResponsiveContainer>
-  ), [displayData, formatYAxis, formatTooltipValue]);
+  ), [displayData, formatYAxis, formatTooltipValue, formatTooltipLabel]);
 
   const spreadChartMemo = useMemo(() => (
     <ResponsiveContainer width="100%" height={400}>
@@ -282,6 +301,7 @@ export const DepthChart: React.FC<Props> = ({ symbol, type = 'spot' }) => {
         />
         <Tooltip 
           formatter={formatTooltipValue}
+          labelFormatter={formatTooltipLabel}
           contentStyle={{ 
             backgroundColor: 'rgba(31, 41, 55, 0.95)',
             border: '1px solid #4b5563',
@@ -306,7 +326,7 @@ export const DepthChart: React.FC<Props> = ({ symbol, type = 'spot' }) => {
         />
       </LineChart>
     </ResponsiveContainer>
-  ), [displayData, formatYAxis, formatTooltipValue]);
+  ), [displayData, formatYAxis, formatTooltipValue, formatTooltipLabel]);
 
   const imbalanceChartMemo = useMemo(() => (
     <ResponsiveContainer width="100%" height={400}>
@@ -327,6 +347,7 @@ export const DepthChart: React.FC<Props> = ({ symbol, type = 'spot' }) => {
         />
         <Tooltip 
           formatter={formatTooltipValue}
+          labelFormatter={formatTooltipLabel}
           contentStyle={{ 
             backgroundColor: 'rgba(31, 41, 55, 0.95)',
             border: '1px solid #4b5563',
@@ -357,7 +378,7 @@ export const DepthChart: React.FC<Props> = ({ symbol, type = 'spot' }) => {
         />
       </LineChart>
     </ResponsiveContainer>
-  ), [displayData, formatYAxis, formatTooltipValue]);
+  ), [displayData, formatYAxis, formatTooltipValue, formatTooltipLabel]);
 
   const renderChart = () => {
     if (loading) {
@@ -472,7 +493,14 @@ export const DepthChart: React.FC<Props> = ({ symbol, type = 'spot' }) => {
           <div className="stat-item">
             <span className="stat-label">最新更新:</span>
             <span className="stat-value">
-              {new Date(displayData[displayData.length - 1]?.timestamp || 0).toLocaleTimeString()}
+              {new Date(displayData[displayData.length - 1]?.timestamp || 0).toLocaleString('en-US', { 
+                month: 'short', 
+                day: 'numeric', 
+                hour: '2-digit', 
+                minute: '2-digit', 
+                second: '2-digit',
+                hour12: false
+              })}
             </span>
           </div>
         </div>

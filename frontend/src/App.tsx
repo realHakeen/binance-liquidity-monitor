@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { LiquidityTable } from './components/LiquidityTable';
 import { StatusBar } from './components/StatusBar';
 import { DepthMonitor } from './components/DepthMonitor';
@@ -15,15 +15,19 @@ function App() {
   const [dataSource, setDataSource] = useState<string>('');
   const [subscriptions, setSubscriptions] = useState<number>(0);
 
+  // 移除 liquidityData.length 依赖，使用 useRef 跟踪是否是首次加载
+  const isFirstLoad = useRef(true);
+
   const fetchData = useCallback(async () => {
     try {
       // 只在第一次加载时显示 loading
-      if (liquidityData.length === 0) {
+      if (isFirstLoad.current) {
         setLoading(true);
       }
       setError(null);
       
       const response = await liquidityAPI.getLiquidityData();
+      console.log('Liquidity API raw response:', response);
       
       if (response.success) {
         setLiquidityData(response.data);
@@ -48,8 +52,9 @@ function App() {
       setError(err instanceof Error ? err.message : '未知错误');
     } finally {
       setLoading(false);
+      isFirstLoad.current = false;
     }
-  }, [liquidityData.length]);
+  }, []); // 不依赖任何状态，避免重新创建
 
   const handleReset = async () => {
     try {
@@ -62,16 +67,15 @@ function App() {
     }
   };
 
-  // 首次加载数据
+  // 首次加载 + 定时刷新合并到一个 useEffect
   useEffect(() => {
+    // 立即执行首次加载
     fetchData();
-  }, [fetchData]);
-
-  // 自动刷新 - WebSocket数据每3秒轮询一次
-  useEffect(() => {
+    
+    // 设置定时器（3秒刷新本地数据）
     const interval = setInterval(() => {
       fetchData();
-    }, 3000); // 3秒刷新一次，因为是从内存读取，不会有限流问题
+    }, 3000); // 3秒刷新一次，从本地内存读取订单簿指标
 
     return () => clearInterval(interval);
   }, [fetchData]);
@@ -103,7 +107,16 @@ function App() {
               {lastUpdate && currentView === 'liquidity' && (
                 <>
                   <span className="label">最后更新:</span>
-                  <span className="value">{lastUpdate.toLocaleTimeString()}</span>
+                  <span className="value">
+                    {lastUpdate.toLocaleString('en-US', { 
+                      month: 'short', 
+                      day: 'numeric', 
+                      hour: '2-digit', 
+                      minute: '2-digit', 
+                      second: '2-digit',
+                      hour12: false
+                    })}
+                  </span>
                   {dataSource === 'websocket' && (
                     <span className="live-badge">🟢 实时</span>
                   )}
@@ -139,7 +152,7 @@ function App() {
               <div className="info-card">
                 <h3>数据说明</h3>
                 <ul>
-                  <li><strong>实时更新:</strong> 通过WebSocket自动更新订单簿（100ms级别）</li>
+                  <li><strong>实时更新:</strong> 通过WebSocket自动更新订单簿（1000ms级别）</li>
                   <li><strong>档位:</strong> BTC/ETH使用500档深度，其他币种使用100档</li>
                   <li><strong>深度:</strong> 显示指定档位内的总交易额(USDT)</li>
                   <li><strong>价差:</strong> 最佳买价与卖价之间的差额百分比</li>
@@ -152,10 +165,10 @@ function App() {
               <div className="info-card">
                 <h3>系统说明</h3>
                 <ul>
-                  <li><strong>自动订阅:</strong> 服务器启动时自动订阅Top 10交易对</li>
+                  <li><strong>自动订阅:</strong> 服务器启动时订阅Top 10交易对</li>
                   <li><strong>数据来源:</strong> REST API快照 + WebSocket增量更新</li>
                   <li><strong>存储方式:</strong> 内存（主存储）+ Redis（备份）</li>
-                  <li><strong>更新频率:</strong> 页面每3秒轮询一次内存数据</li>
+                  <li><strong>更新频率:</strong> 页面每3秒轮询一次本地订单簿数据，24h成交量每5分钟更新一次</li>
                 </ul>
               </div>
             </div>

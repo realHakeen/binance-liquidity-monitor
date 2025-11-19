@@ -15,7 +15,7 @@ module.exports = {
    * - 推送频率本身不受限制（这是服务器推送的频率）
    * - 但连接数和消息发送速率有限制
    */
-  updateInterval: '100ms',
+  updateInterval: '1000ms',
 
   /**
    * 重连延迟(毫秒)

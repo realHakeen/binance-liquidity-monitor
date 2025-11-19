@@ -9,6 +9,20 @@ interface Symbol {
   symbol: string;
 }
 
+// 定义固定的交易对列表（在组件外部）
+const PREDEFINED_SYMBOLS = [
+  'BTCUSDT',
+  'ETHUSDT',
+  'SOLUSDT',
+  'XRPUSDT',
+  'BNBUSDT',
+  'SUIUSDT',
+  'DOGEUSDT',
+  'UNIUSDT',
+  'DOTUSDT',
+  'ASTERUSDT'
+];
+
 export const DepthMonitor: React.FC = () => {
   // 从 localStorage 加载状态
   const [selectedType, setSelectedType] = useState<'spot' | 'futures'>(() => {
@@ -53,39 +67,15 @@ export const DepthMonitor: React.FC = () => {
     }
   }, [selectedType, selectedSymbol]);
 
-  // 获取交易对列表
+  // 移除 fetchSymbols 函数，改用固定列表
   useEffect(() => {
-    fetchSymbols();
-  }, [selectedType]);
+    // 使用预定义的交易对列表
+    setSymbols(PREDEFINED_SYMBOLS.map(symbol => ({ symbol })));
+    setLoading(false);
+  }, [selectedType]); // 现货和期货使用相同列表
 
-  const fetchSymbols = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      // 从 Binance 直接获取交易对列表
-      const baseUrl = selectedType === 'futures'
-        ? 'https://fapi.binance.com/fapi/v1'
-        : 'https://api.binance.com/api/v3';
-
-      const response = await axios.get(`${baseUrl}/exchangeInfo`);
-
-      // 过滤 USDT 交易对
-      const usdtSymbols = response.data.symbols
-        .filter((s: any) => s.quoteAsset === 'USDT' && s.status === 'TRADING')
-        .map((s: any) => ({ symbol: s.symbol }))
-        .sort((a: Symbol, b: Symbol) => a.symbol.localeCompare(b.symbol));
-
-      setSymbols(usdtSymbols);
-    } catch (err) {
-      console.error('获取交易对列表失败:', err);
-      setError('获取交易对列表失败');
-      setSymbols([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  // 移除原来的 fetchSymbols 函数
+  
   // 过滤交易对
   const filteredSymbols = useMemo(() => {
     if (!searchTerm) return symbols;

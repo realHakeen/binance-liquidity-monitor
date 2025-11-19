@@ -33,10 +33,13 @@ export const MirroredDepthChart: React.FC<MirroredDepthChartProps> = ({ data, lo
 
   const formatTime = useCallback((timestamp: number) => {
     const date = new Date(timestamp);
-    return date.toLocaleTimeString('en-US', { 
+    return date.toLocaleString('en-US', { 
+      month: 'short', 
+      day: 'numeric',
       hour: '2-digit', 
-      minute: '2-digit',
-      second: '2-digit'
+      minute: '2-digit', 
+      second: '2-digit',
+      hour12: false
     });
   }, []);
 
