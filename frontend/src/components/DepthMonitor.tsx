@@ -1,7 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { DepthChart } from './DepthChart';
-import { liquidityAPI } from '../services/api';
-import axios from 'axios';
 
 const STORAGE_KEY = 'depth_monitor_state';
 
@@ -51,7 +49,6 @@ export const DepthMonitor: React.FC = () => {
 
   const [symbols, setSymbols] = useState<Symbol[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [showDropdown, setShowDropdown] = useState(false);
 
@@ -191,13 +188,6 @@ export const DepthMonitor: React.FC = () => {
           </span>
         </div>
       </div>
-
-      {/* 错误提示 */}
-      {error && (
-        <div className="error-banner">
-          ⚠️ {error}
-        </div>
-      )}
 
       {/* 图表区域 */}
       <div className="chart-container">

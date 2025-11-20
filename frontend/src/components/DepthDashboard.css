@@ -370,7 +370,6 @@
   .market-tabs {
     width: 100%;
   }
-
   .symbol-selector {
     min-width: 100%;
   }
@@ -384,4 +383,5 @@
     grid-template-columns: 1fr;
   }
 }
+
 

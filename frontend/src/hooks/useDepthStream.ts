@@ -31,7 +31,7 @@ export const useDepthStream = ({ market, symbol }: UseDepthStreamProps): UseDept
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [connected, setConnected] = useState(false);
-  const [refreshKey, setRefreshKey] = useState(0);
+  const [, forceRefresh] = useState(0);
 
   // Ring buffer in ref (no re-renders)
   const bufferRef = useRef<DepthPoint[]>([]);
@@ -50,13 +50,13 @@ export const useDepthStream = ({ market, symbol }: UseDepthStreamProps): UseDept
       rafRef.current = requestAnimationFrame(() => {
         pendingUpdateRef.current = false;
         lastUpdateRef.current = Date.now();
-        setRefreshKey(prev => prev + 1);
+        forceRefresh(prev => prev + 1);
       });
       return;
     }
 
     lastUpdateRef.current = now;
-    setRefreshKey(prev => prev + 1);
+    forceRefresh(prev => prev + 1);
   }, []);
 
   // Append point to ring buffer
@@ -121,7 +121,7 @@ export const useDepthStream = ({ market, symbol }: UseDepthStreamProps): UseDept
       }
     };
 
-    ws.onerror = (event) => {
+    ws.onerror = (_event) => {
       if (isMounted) {
         setError('WebSocket connection error');
         setConnected(false);
